@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Herramienta de Pablo</title>
+<style>
+:root{
+  --morado:#5B4B8A; --morado-claro:#EFEAFB;
+  --verde:#3E8E5A; --verde-claro:#EAF7EF;
+  --naranja:#D97B29; --naranja-claro:#FDF1E6;
+  --gris-claro:#F5F5F7; --texto:#2d3748; --sub:#4a5568;
+  --bg:#f4f2fa; --card:#ffffff;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --gris-claro:#2a2a33; --texto:#eee; --sub:#cbd5e0; --bg:#1c1b22; --card:#26252e;
+    --morado-claro:#332b4d; --verde-claro:#1f3327; --naranja-claro:#3a2a17;
+  }
+}
+:root[data-theme="dark"]{
+  --gris-claro:#2a2a33; --texto:#eee; --sub:#cbd5e0; --bg:#1c1b22; --card:#26252e;
+  --morado-claro:#332b4d; --verde-claro:#1f3327; --naranja-claro:#3a2a17;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px); height:100%;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:var(--bg); min-height:100%; padding:16px; line-height:1.55;
+}
+.container{max-width:600px;margin:0 auto;background:var(--card);border-radius:20px;
+  box-shadow:0 12px 40px rgba(0,0,0,.15);overflow:hidden;}
+.header{background:linear-gradient(135deg,var(--morado) 0%,#764ba2 100%);color:#fff;
+  padding:env(safe-area-inset-top,0px) 24px 20px;text-align:center;}
+.header h1{font-size:20px;padding-top:18px;}
+.header p{opacity:.9;font-size:13px;margin-top:4px;}
+.content{padding:24px;max-width:100%;overflow-x:auto;}
+.screen{display:none;}
+.screen.active{display:block;animation:fadeIn .25s ease-in;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.question{font-size:18px;font-weight:700;color:var(--texto);margin-bottom:18px;text-align:center;}
+.options{display:flex;flex-direction:column;gap:10px;}
+.option-btn{background:var(--gris-claro);border:2px solid transparent;padding:14px 16px;
+  border-radius:12px;cursor:pointer;font-size:15px;text-align:left;color:var(--texto);transition:.15s;}
+.option-btn:hover{border-color:var(--morado);}
+.btn{background:linear-gradient(135deg,var(--morado) 0%,#764ba2 100%);color:#fff;border:none;
+  padding:14px 20px;border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;width:100%;
+  margin-top:14px;}
+.btn.green{background:linear-gradient(135deg,var(--verde) 0%,#2f7048 100%);}
+.btn.orange{background:linear-gradient(135deg,var(--naranja) 0%,#b8621f 100%);}
+.btn.ghost{background:var(--gris-claro);color:var(--texto);}
+.card{border-radius:12px;padding:16px 18px;margin:14px 0;}
+.card.morado{background:var(--morado-claro);}
+.card.verde{background:var(--verde-claro);}
+.card.naranja{background:var(--naranja-claro);}
+.card.gris{background:var(--gris-claro);}
+.card h3{font-size:15px;color:var(--texto);margin-bottom:8px;}
+.card ul{list-style:none;}
+.card li{padding:4px 0 4px 18px;position:relative;color:var(--sub);font-size:14.5px;}
+.card li:before{content:"•";position:absolute;left:0;color:var(--morado);}
+.card p{color:var(--sub);font-size:14.5px;margin-bottom:6px;}
+.pill{display:inline-block;background:var(--morado);color:#fff;font-size:12px;font-weight:700;
+  padding:3px 10px;border-radius:20px;margin-bottom:10px;}
+.pill.green{background:var(--verde);} .pill.orange{background:var(--naranja);}
+.reflect{font-style:italic;color:var(--texto);font-size:15.5px;margin:10px 0;padding:12px 14px;
+  background:var(--morado-claro);border-radius:10px;}
+input[type=text]{width:100%;padding:10px 12px;border-radius:8px;border:1px solid #ccc;
+  font-size:14px;margin-top:6px;background:var(--card);color:var(--texto);}
+.breath-wrap{display:flex;flex-direction:column;align-items:center;padding:30px 0;}
+.breath-circle{width:140px;height:140px;border-radius:50%;background:linear-gradient(135deg,var(--morado),#764ba2);
+  display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;
+  transition:transform 4s ease-in-out;transform:scale(.7);}
+.breath-circle.grow{transform:scale(1.15);}
+.breath-circle.hold{transform:scale(1.15);transition:transform .3s;}
+.breath-txt{margin-top:18px;font-size:15px;color:var(--sub);text-align:center;}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1 id="header-title">Herramienta de Pablo</h1>
+    <p id="header-sub">Un espacio para acompañarte</p>
+  </div>
+  <div class="content">
+
+    <!-- HOME -->
+    <div class="screen active" id="home">
+      <div class="question">Hola, Pablo. ¿Qué necesitas ahora?</div>
+      <div class="options">
+        <button class="option-btn" onclick="go('malestar-menu')">💭 Tengo un malestar con el que quiero trabajar</button>
+        <button class="option-btn" onclick="go('crisis-1')">🔥 Estoy en crisis, siento que voy a consumir</button>
+        <button class="option-btn" onclick="go('vida')">🌿 Quiero conectar con mi vida</button>
+        <button class="option-btn" onclick="go('respirar')">🌬️ Solo quiero respirar un momento</button>
+      </div>
+    </div>
+
+    <!-- MALESTAR MENU -->
+    <div class="screen" id="malestar-menu">
+      <div class="question">¿Qué es lo que sientes ahora mismo?</div>
+      <div class="options">
+        <button class="option-btn" onclick="go('impulso')">Impulso de escribirle, buscarla o stalkearla</button>
+        <button class="option-btn" onclick="go('rumiacion')">Le estoy dando vueltas a lo mismo</button>
+        <button class="option-btn" onclick="go('tristeza')">Una tristeza muy profunda</button>
+        <button class="option-btn" onclick="go('incomodidad')">Una incomodidad que no sé nombrar</button>
+      </div>
+      <button class="btn ghost" onclick="go('home')">Volver</button>
+    </div>
+
+    <!-- IMPULSO -->
+    <div class="screen" id="impulso">
+      <div class="question">Antes de actuar sobre el impulso</div>
+      <div class="reflect">¿Esto me acerca o me aleja de la vida que quiero construir?</div>
+      <div class="reflect">¿Hacer esto mejora mi vida de alguna manera?</div>
+      <div class="card gris"><p>No tienes que resolverlo ahora. Solo nota la respuesta honesta, y date un minuto antes de decidir qué haces con el impulso.</p></div>
+      <button class="btn" onclick="go('respirar')">Quiero respirar antes de decidir</button>
+      <button class="btn ghost" onclick="go('malestar-menu')">Volver</button>
+    </div>
+
+    <!-- RUMIACIÓN -->
+    <div class="screen" id="rumiacion">
+      <div class="question">Cuando estás dándole vueltas a lo mismo</div>
+      <div class="card morado">
+        <h3>Recuerda</h3>
+        <p>Los pensamientos son solo pensamientos, no hechos. No tienes que creerles ni actuar sobre ellos.</p>
+        <p>Prueba nombrarlo así: <i>"Estoy teniendo el pensamiento de que..."</i> en vez de darlo por cierto.</p>
+      </div>
+      <div class="question" style="font-size:15.5px;margin-top:18px;">¿Con qué actividad te vas a conectar ahora?</div>
+      <input type="text" placeholder="Escribe una actividad concreta">
+      <button class="btn ghost" onclick="go('malestar-menu')">Volver</button>
+    </div>
+
+    <!-- TRISTEZA -->
+    <div class="screen" id="tristeza">
+      <div class="question">Cuando la tristeza es muy profunda</div>
+      <div class="reflect">¿Qué necesito para acompañarme en este momento?</div>
+      <div class="card verde">
+        <h3>Algunas ideas, si no se te ocurre nada todavía</h3>
+        <ul>
+          <li>Permitirme sentirlo sin pelear con la emoción</li>
+          <li>Llamar o escribir a alguien que me sostenga</li>
+          <li>Un gesto de cuidado hacia mí (una manta, algo caliente de tomar)</li>
+          <li>Tocar la guitarra</li>
+          <li>Comer algo rico</li>
+          <li>Ver una película</li>
+          <li>Llorar, si es lo que pide el cuerpo</li>
+        </ul>
+      </div>
+      <button class="btn ghost" onclick="go('malestar-menu')">Volver</button>
+    </div>
+
+    <!-- INCOMODIDAD -->
+    <div class="screen" id="incomodidad">
+      <div class="question">Vamos a nombrar la incomodidad</div>
+      <div class="reflect">¿Dónde la sientes en tu cuerpo?</div>
+      <div class="reflect">¿Qué nombre tiene? ¿Ansiedad, rabia, miedo, desilusión, dolor?</div>
+      <div class="reflect">¿En qué parte de tu cuerpo se ubica exactamente?</div>
+      <div class="reflect">¿Qué necesitas ahora?</div>
+      <button class="btn" onclick="go('respirar')">Respirar mientras la sostengo</button>
+      <button class="btn ghost" onclick="go('malestar-menu')">Volver</button>
+    </div>
+
+    <!-- CONECTAR CON LA VIDA -->
+    <div class="screen" id="vida">
+      <div class="question">Conectar con la vida</div>
+      <div class="card verde">
+        <p>No se trata solo de atravesar el malestar y tolerar la incomodidad. También se trata de hacer cosas que enriquezcan tu vida y te hagan sentir bien, aunque el malestar siga ahí un poco.</p>
+      </div>
+      <div class="card gris">
+        <h3>Algunas ideas</h3>
+        <ul>
+          <li>Ir al gimnasio</li>
+          <li>Ver a mis amigos</li>
+          <li>Tocar la guitarra</li>
+          <li>Estudiar</li>
+          <li>Ir a explorar algún lugar nuevo</li>
+          <li>Explorar mis proyectos en el computador</li>
+          <li>Conectar con la música</li>
+        </ul>
+        <input type="text" placeholder="Otra cosa que enriquece mi vida...">
+      </div>
+      <button class="btn ghost" onclick="go('home')">Volver al inicio</button>
+    </div>
+
+    <!-- RESPIRACIÓN -->
+    <div class="screen" id="respirar">
+      <div class="question">Respira conmigo</div>
+      <div class="breath-wrap">
+        <div class="breath-circle" id="breathCircle">Inhala</div>
+        <div class="breath-txt" id="breathTxt">Toca "Empezar" cuando estés listo</div>
+      </div>
+      <button class="btn" id="breathBtn" onclick="toggleBreath()">Empezar</button>
+      <button class="btn ghost" onclick="stopBreath();go('home')">Volver al inicio</button>
+    </div>
+
+    <!-- CRISIS 1: PATRÓN -->
+    <div class="screen" id="crisis-1">
+      <span class="pill">Paso 1</span>
+      <div class="question">Reconoce tu patrón</div>
+      <div class="card morado" style="text-align:center;font-weight:600;">
+        Recuerdo asociado a ella &nbsp;→&nbsp; Malestar &nbsp;→&nbsp; Impulso de consumir
+      </div>
+      <div class="card gris">
+        <h3>Tus disparadores</h3>
+        <ul><li>Pensar en ella</li><li>Sentir incomodidad</li><li>Querer escribirle</li>
+        <li>Ver algo en redes sociales</li><li>Acordarte de cosas</li></ul>
+      </div>
+      <div class="card gris">
+        <h3>Tus señales físicas de que estás en crisis</h3>
+        <ul><li>Sudoración de manos</li><li>Taquicardia</li><li>Dificultad para respirar</li>
+        <li>Impulso de "salir de eso rápido"</li></ul>
+      </div>
+      <button class="btn" onclick="go('crisis-2')">Continuar</button>
+      <button class="btn ghost" onclick="go('home')">Volver al inicio</button>
+    </div>
+
+    <!-- CRISIS 2: COMPROMISOS -->
+    <div class="screen" id="crisis-2">
+      <span class="pill green">Paso 2</span>
+      <div class="question">Compromisos preventivos con mi vida</div>
+      <div class="card verde">
+        <p>No hace falta esperar a que llegue la crisis. Esto lo hago antes, para sostener la vida que quiero vivir:</p>
+        <ul>
+          <li>Ir al súper al llegar del trabajo</li>
+          <li>Ir al gimnasio por la tarde</li>
+          <li>Cocinar después del gimnasio</li>
+          <li>Café hasta las 4pm, máximo 2</li>
+          <li>Beber más agua</li>
+        </ul>
+        <p style="font-style:italic;margin-top:10px;">"Tengo una vida que me gusta y que he construido con esfuerzo, puedo estar en ella y permitirme disfrutarla y valorarla."</p>
+      </div>
+      <button class="btn" onclick="go('crisis-3')">Continuar</button>
+      <button class="btn ghost" onclick="go('crisis-1')">Atrás</button>
+    </div>
+
+    <!-- CRISIS 3: FISIOLOGÍA -->
+    <div class="screen" id="crisis-3">
+      <span class="pill orange">Paso 3</span>
+      <div class="question">Cambia la fisiología de tu cuerpo</div>
+      <div class="card naranja">
+        <h3>Primero, en este orden</h3>
+        <ul><li>1. Ejercicio intenso</li><li>2. Ducha de agua MUY fría</li><li>3. Escuchar música intensa</li></ul>
+        <h3 style="margin-top:12px;">Si necesitas más opciones, en casa</h3>
+        <ul>
+          <li>Échate agua muy fría en la cara</li>
+          <li>Mete los pies en agua con hielo</li>
+          <li>Ponte una máscara fría</li>
+          <li>Sostén un hielo en cada mano hasta que notes que el impulso ha bajado</li>
+          <li>Tensiona y relaja los músculos uno por uno</li>
+        </ul>
+        <h3 style="margin-top:12px;">Si estás fuera de casa</h3>
+        <ul>
+          <li>Come algo muy picante o una gota de salsa picante en la lengua</li>
+          <li>Come una bolita de pimienta</li>
+          <li>Chupa una pastilla Halls</li>
+        </ul>
+      </div>
+      <div class="card gris">
+        <h3>Opcionales para distraerte</h3>
+        <ul>
+          <li>Ver una película o serie</li><li>Tocar la guitarra</li><li>Salir con amigos</li>
+          <li>Comer algo que me guste</li><li>Fingir una carcajada</li>
+        </ul>
+        <input type="text" placeholder="Otra idea mía...">
+      </div>
+      <button class="btn" onclick="go('crisis-4')">Continuar</button>
+      <button class="btn ghost" onclick="go('crisis-2')">Atrás</button>
+    </div>
+
+    <!-- CRISIS 4: PRESENTE -->
+    <div class="screen" id="crisis-4">
+      <span class="pill">Paso 4</span>
+      <div class="question">Vuelve al momento presente</div>
+      <div class="card morado">
+        <ul>
+          <li>Parar y volver a mi respiración</li>
+          <li>Oler algo que me guste</li>
+          <li>Usar el tacto (plastilina, slime, algo que pueda moldear)</li>
+          <li>Describir mi entorno</li>
+          <li>Recordarme: esto es ansiedad, es una emoción, y va a pasar</li>
+          <li>Mantenerme conectado a mi respiración</li>
+        </ul>
+      </div>
+      <button class="btn" onclick="go('respirar')">Respirar ahora</button>
+      <button class="btn" onclick="go('crisis-5')">Continuar</button>
+      <button class="btn ghost" onclick="go('crisis-3')">Atrás</button>
+    </div>
+
+    <!-- CRISIS 5: EMERGENCIA -->
+    <div class="screen" id="crisis-5">
+      <span class="pill green">Paso 5</span>
+      <div class="question">Si nada de esto es suficiente</div>
+      <div class="card verde" style="text-align:center;">
+        <h3 style="font-size:17px;">Escríbele a tu terapeuta</h3>
+        <p>No tienes que pasar por esto solo.</p>
+      </div>
+      <div class="card gris" style="text-align:center;font-style:italic;">Estás haciendo un trabajo valiente. Un paso a la vez.</div>
+      <button class="btn ghost" onclick="go('home')">Volver al inicio</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+let breathTimer=null, breathRunning=false;
+function toggleBreath(){
+  const btn=document.getElementById('breathBtn');
+  if(breathRunning){ stopBreath(); btn.textContent='Empezar'; return; }
+  breathRunning=true; btn.textContent='Detener';
+  runBreathCycle();
+}
+function stopBreath(){
+  breathRunning=false;
+  if(breathTimer) clearTimeout(breathTimer);
+  const circle=document.getElementById('breathCircle');
+  circle.className='breath-circle';
+  document.getElementById('breathTxt').textContent='Toca "Empezar" cuando estés listo';
+  const btn=document.getElementById('breathBtn');
+  if(btn) btn.textContent='Empezar';
+}
+function runBreathCycle(){
+  if(!breathRunning) return;
+  const circle=document.getElementById('breathCircle');
+  const txt=document.getElementById('breathTxt');
+  circle.className='breath-circle grow';
+  circle.textContent='Inhala';
+  txt.textContent='Inhala por la nariz... 4 segundos';
+  breathTimer=setTimeout(()=>{
+    if(!breathRunning) return;
+    circle.className='breath-circle hold';
+    circle.textContent='Sostén';
+    txt.textContent='Sostén el aire... 4 segundos';
+    breathTimer=setTimeout(()=>{
+      if(!breathRunning) return;
+      circle.className='breath-circle';
+      circle.textContent='Exhala';
+      txt.textContent='Exhala despacio por la boca... 6 segundos';
+      breathTimer=setTimeout(runBreathCycle,6000);
+    },4000);
+  },4000);
+}
+</script>
+</body>
+</html>
